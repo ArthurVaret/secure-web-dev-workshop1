@@ -125,7 +125,17 @@ console.log(getArseneFilmingLocations())
 //    const films = { 'LRDM - Patriot season 2': ['75013'] }
 // 2. Log the result
 function getFavoriteFilmsLocations (favoriteFilmsNames) {
-	return []
+	let filtered = filmingLocations => favoriteFilms.includes(filmingLocations.fields.nom_tournage);
+	const filteredFilm = filmingLocations.filter(filtered).fields;
+	let filteredFilmPerDistrict = filmingLocations.reduce((d, c) => {
+		let district = c.fields.ardt_lieu;
+		if (!d.hasOwnProperty(district)) {
+			d[district]=0;
+		}
+		d[district]++;
+		return d;
+	}, {});
+	return filteredFilmPerDistrict
 }
 const favoriteFilms =
 	[
@@ -133,6 +143,7 @@ const favoriteFilms =
 		'Alice NEVERS',
 		'Emily in Paris',
 	]
+console.log(getFavoriteFilmsLocations())
 
 // 📝 TODO: All filming locations for each film
 //     e.g. :
@@ -141,24 +152,51 @@ const favoriteFilms =
 //        'Une jeune fille qui va bien': [{...}]
 //     }
 function getFilmingLocationsPerFilm () {
-	return { }
+	let dico = {};
+	for (let i = 0; i < filmingLocations.length; i++) {
+		if (dico[filmingLocations[i].fields.nom_tournage] === undefined)
+		{
+			dico[filmingLocations[i].fields.nom_tournage] = [filmingLocations[i].adresse_lieu];
+		}
+		else {
+			dico[filmingLocations[i].fields.nom_tournage].push(filmingLocations[i]);
+		}
+	}
+	return dico
 }
+//console.log(getFilmingLocationsPerFilm())
 
 // 📝 TODO: Count each type of film (Long métrage, Série TV, etc...)
 // 1. Implement the function
 // 2. Log the result
 function countFilmingTypes () {
-	return {}
+	let dico = {}
+	for(let element of filmingLocations){
+		if (dico[element.fields.type_tournage] === undefined){
+			dico[element.fields.type_tournage] = 1;
+		}
+		else{
+			dico[element.fields.type_tournage]++;
+		}
+	}
+	return dico
 }
-
+console.log(countFilmingTypes())
 // 📝 TODO: Sort each type of filming by count, from highest to lowest
 // 1. Implement the function. It should return a sorted array of objects like:
 //    [{type: 'Long métrage', count: 1234}, {...}]
 // 2. Log the result
 function sortedCountFilmingTypes () {
-	return []
+	let dico = countFilmingTypes()
+	let items = Object.keys(dico).map(function(key) {
+		return [key, dico[key]];
+	});
+	items.sort(function(first, second) {
+		return second[1] - first[1];
+	});
+	return items;
 }
-
+console.log(sortedCountFilmingTypes())
 /**
  * This arrow functions takes a duration in milliseconds and returns a
  * human-readable string of the duration
@@ -170,7 +208,35 @@ const duration = (ms) => `${(ms/(1000*60*60*24)).toFixed(0)} days, ${((ms/(1000*
 // 📝 TODO: Find the filming location with the longest duration
 // 1. Implement the function
 // 2. Log the filming location, and its computed duration
-
+function longestDuration (){
+	let result = 0;
+	let filmResult;
+	let startDate;
+	let endDate;
+	for (let element of filmingLocations){
+		startDate = new Date(element.fields.date_debut);
+		endDate = new Date(element.fields.date_fin);
+		if (endDate-startDate > result){
+			result = endDate-startDate;
+			filmResult = element.fields.nom_tournage;
+		}
+	}
+	return "Longest film : "+filmResult+" with duration of : "+ duration(result);
+}
+console.log(longestDuration());
 // 📝 TODO: Compute the average filming duration
 // 1. Implement the function
 // 2. Log the result
+function averageDuration(){
+	let avg = 0;
+	let startDate;
+	let endDate;
+	for (let element of filmingLocations){
+		startDate = new Date(element.fields.date_debut);
+		endDate = new Date(element.fields.date_fin);
+		avg += endDate-startDate;
+	}
+	avg = avg/filmingLocations.length;
+	return duration(avg);
+}
+console.log(averageDuration())
